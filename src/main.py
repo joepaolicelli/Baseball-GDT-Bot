@@ -33,7 +33,7 @@ sys.setdefaultencoding('utf8')
 class Bot:
 
     def __init__(self):
-        self.VERSION = '5.1.1'
+        self.VERSION = '5.1.2'
         self.SETTINGS = {}
         self.games = games.Games().games
         self.gamesLive = games.Games().gamesLive
