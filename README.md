@@ -162,6 +162,7 @@ Modules being used:
 
 #### v5.1.2
 * Added `logger.py` module, which contains the `Logger` class that adds console and file handlers to the root logger. Enable and set log level for console and file in `settings.json` with the new `LOGGING` section. `LOG_LEVEL` setting is deprecated. Default is file enabled/DEBUG and console enabled/INFO. Log files will be stored in `/logs` and named `TEAM_CODE-bot.log` (e.g. `phi-bot.log`), rotated daily with a week's logs retained.
+* Added `self.editStats` dict to hold data about checks and edits for each game thread. At the end of each day, an INFO entry will be logged with the totals and rate (edits/checks)
 
 #### v5.1.1
 * Fixed bug in `next_game()` that resulted in doubleheader game 1 being listed as the next game after doubleheader game 2

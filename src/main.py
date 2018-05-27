@@ -38,6 +38,7 @@ class Bot:
         self.SETTINGS = {}
         self.games = games.Games().games
         self.gamesLive = games.Games().gamesLive
+        self.editStats = {}
 
     def read_settings(self):
         import os
@@ -620,6 +621,7 @@ class Bot:
                         self.games[i].update({'gameInfo' : edit.get_teams_time(pk=self.games[i].get('gamePk'),d=today.date())})
                         self.games[i].get('gameInfo').pop('status') #remove redundant status node (it won't be kept up-to-date anyway)
                         threads[i] = {'game' : '', 'post' : '', 'pre' : ''}
+                        self.editStats.update({i: {'checked' : [], 'edited' : []}})
                         i += 1
                 if len(self.games) > 1:
                     for a,g in self.games.items(): #Update games with id of other game in the doubleheader
@@ -899,6 +901,7 @@ class Bot:
             while len(self.games) > 0:
                 for k,game in self.games.items():
                     if len(self.games)>1: logger.info("Game %s check",k)
+                    self.editStats[k]['checked'].append(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
                     if game.get('othergame')>0 and self.games[game.get('othergame')].get('doubleheader') and self.games[game.get('othergame')].get('final') and not game.get('gamesub'):
                         logger.info("Updating title for doubleheader Game %s since Game %s is final...", k, game.get('othergame'))
                         game.update({'gametitle': edit.generate_title(k,'game')})
@@ -1034,6 +1037,7 @@ class Bot:
                                                 game.get('gamesub').edit(threadstr)
                                                 sleeptime = 5 + self.SETTINGS.get('GAME_THREAD').get('EXTRA_SLEEP')
                                                 logger.info("Game %s edits submitted. Sleeping for %s seconds...",k,sleeptime)
+                                                self.editStats[k]['edited'].append(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
                                                 time.sleep(sleeptime)
                                                 break
                                             except Exception, err:
@@ -1175,6 +1179,13 @@ class Bot:
                 logger.info("Active Games: %s ...in Preview Status: %s ...in Delayed Status: %s - Pending Games: %s - Completed Games: %s",activegames,previewgames,delayedgames,pendinggames,completedgames)
 
                 if activegames == 0 and pendinggames == 0:
+                    for a,b in self.games.items():
+                        checks = len(self.editStats[a]['checked'])
+                        edits = len(self.editStats[a]['edited'])
+                        if checks != 0:
+                            rate = edits/checks*100
+                        else: rate = '-'
+                        logger.info("Game thread edit stats for Game %s: %s checks, %s edits, %s%% edit rate.", a, checks, edits, rate)
                     logger.info("All games final for today, going into end of day loop...")
                     break
                 elif pendinggames > 0 and activegames == 0:
