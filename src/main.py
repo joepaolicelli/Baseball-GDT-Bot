@@ -96,6 +96,47 @@ class Bot:
                 warnings.append('Missing LOGGING : CONSOLE_LOG_LEVEL, using default (INFO)...')
                 self.SETTINGS['LOGGING'].update({'CONSOLE_LOG_LEVEL': 'INFO'})
 
+            if self.SETTINGS.get('NOTIFICATIONS') == None:
+                warnings.append('Missing NOTIFICATIONS, using defaults (PROWL: ENABLED: false, API_KEY: "", NOTIFY_WHEN: OFF_THREAD_SUBMITTED: true, PRE_THREAD_SUBMITTED: true, GAME_THREAD_SUBMITTED: true, POST_THREAD_SUBMITTED: true, END_OF_DAY_EDIT_STATS: true)...')
+                self.SETTINGS.update({'NOTIFICATIONS' : {'PROWL' : {'ENABLED': False, 'API_KEY': '', 'NOTIFY_WHEN' : {'OFF_THREAD_SUBMITTED': True, 'PRE_THREAD_SUBMITTED': True, 'GAME_THREAD_SUBMITTED': True, 'POST_THREAD_SUBMITTED': True, 'END_OF_DAY_EDIT_STATS': True}}}})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL, using defaults (ENABLED: false, API_KEY: "", NOTIFY_WHEN: OFF_THREAD_SUBMITTED: true, PRE_THREAD_SUBMITTED: true, GAME_THREAD_SUBMITTED: true, POST_THREAD_SUBMITTED: true, END_OF_DAY_EDIT_STATS: true)...')
+                self.SETTINGS['NOTIFICATIONS'].update({'PROWL' : {'ENABLED': False, 'API_KEY': '', 'NOTIFY_WHEN' : {'OFF_THREAD_SUBMITTED': True, 'PRE_THREAD_SUBMITTED': True, 'GAME_THREAD_SUBMITTED': True, 'POST_THREAD_SUBMITTED': True, 'END_OF_DAY_EDIT_STATS': True}}})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : ENABLED, using default (false)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL'].update({'ENABLED': False})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('API_KEY') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : API_KEY, using default ("") and disabling Prowl overall...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL'].update({'API_KEY': False})
+                self.SETTINGS['NOTIFICATIONS']['PROWL'].update({'ENABLED': False})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : NOTIFY_WHEN, using defaults (OFF_THREAD_SUBMITTED: true, PRE_THREAD_SUBMITTED: true, GAME_THREAD_SUBMITTED: true, POST_THREAD_SUBMITTED: true, END_OF_DAY_EDIT_STATS: true)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL'].update({'NOTIFY_WHEN': {'OFF_THREAD_SUBMITTED': True, 'PRE_THREAD_SUBMITTED': True, 'GAME_THREAD_SUBMITTED': True, 'POST_THREAD_SUBMITTED': True, 'END_OF_DAY_EDIT_STATS': True}})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('OFF_THREAD_SUBMITTED') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : NOTIFY_WHEN : OFF_THREAD_SUBMITTED, using default (true)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL']['NOTIFY_WHEN'].update({'OFF_THREAD_SUBMITTED': True,})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('PRE_THREAD_SUBMITTED') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : NOTIFY_WHEN : PRE_THREAD_SUBMITTED, using default (true)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL']['NOTIFY_WHEN'].update({'PRE_THREAD_SUBMITTED': True,})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('GAME_THREAD_SUBMITTED') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : NOTIFY_WHEN : GAME_THREAD_SUBMITTED, using default (true)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL']['NOTIFY_WHEN'].update({'GAME_THREAD_SUBMITTED': True,})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('POST_THREAD_SUBMITTED') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : NOTIFY_WHEN : POST_THREAD_SUBMITTED, using default (true)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL']['NOTIFY_WHEN'].update({'POST_THREAD_SUBMITTED': True,})
+
+            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('END_OF_DAY_EDIT_STATS') == None:
+                warnings.append('Missing NOTIFICATIONS : PROWL : NOTIFY_WHEN : END_OF_DAY_EDIT_STATS, using default (true)...')
+                self.SETTINGS['NOTIFICATIONS']['PROWL']['NOTIFY_WHEN'].update({'END_OF_DAY_EDIT_STATS': True,})
+
             if self.SETTINGS.get('OFF_THREAD') == None:
                 warnings.append('Missing OFF_THREAD, using defaults (ENABLED: true, TITLE: "OFF DAY THREAD: {date:%A, %B %d}", TIME: 9AM, FOOTER: "No game today. Feel free to discuss whatever you want in this thread.", SUGGESTED_SORT: "new", INBOX_REPLIES: false, FLAIR: "", SUPPRESS_OFFSEASON: true, TWITTER:ENABLED: false, TWITTER:TEXT: "")...')
                 self.SETTINGS.update({'OFF_THREAD' : {'ENABLED' : True,'TITLE' : 'OFF DAY THREAD: {date:%A, %B %d}','TIME' : '9AM', 'FOOTER' : 'No game today. Feel free to discuss whatever you want in this thread.', 'SUGGESTED_SORT': 'new', 'INBOX_REPLIES': False, 'FLAIR' : '', 'SUPPRESS_OFFSEASON' : True, 'TWITTER' : {'ENABLED' : False, 'TEXT' : ""}}})
@@ -507,6 +548,17 @@ class Bot:
                 return
             else: break
 
+        if self.SETTINGS['NOTIFICATIONS']['PROWL']['ENABLED']:
+            logger.info("Setting up Prowl notifications...")
+            import prowl as prowlModule
+            prowl = prowlModule.Prowl(self.SETTINGS['NOTIFICATIONS']['PROWL']['API_KEY'], myteam.get('name'))
+            verifyKey = prowl.verify_key()
+            if verifyKey.get('status')=='success':
+                logger.info("Successfully validated Prowl API key...")
+            else:
+                logger.error("Could not validate Prowl API key, disabling Prowl notifications. Status code: %s %s, message: %s",verifyKey.get('code'), verifyKey.get('message'), verifyKey.get('errMsg'))
+                self.SETTINGS['NOTIFICATIONS']['PROWL'].update({'ENABLED':False})
+
         timechecker = timecheck.TimeCheck(self.SETTINGS)
 
         logger.info("Initiating PRAW instance with User Agent: %s",self.SETTINGS.get('FULL_USER_AGENT'))
@@ -752,6 +804,13 @@ class Bot:
                             twt.PostUpdate(tweetText)
                             logger.info("Tweet submitted...")
 
+                        if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('OFF_THREAD_SUBMITTED'):
+                            logger.info("Sending Prowl notification...")
+                            event = myteam.get('name') + ' Off Day Thread Posted'
+                            description = myteam.get('name') + ' off day thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+offday.get('offtitle')+'\nURL: '+offday.get('offsub').shortlink
+                            prowlResult = prowl.send_notification(event, description, url=offday.get('offsub').shortlink)
+                            logger.info("Notifications sent...")
+
                         logger.info("Finished posting offday thread, going into end of day loop...")
                 except Exception, err:
                     logger.info("Error posting off day thread: %s",err)
@@ -876,6 +935,13 @@ class Bot:
                                     else: tweetText = edit.replace_params(self.SETTINGS.get('PRE_THREAD').get('TWITTER').get('TEXT').replace('{link}',game.get('presub').shortlink), 'pre', 'tweet', k)
                                     twt.PostUpdate(tweetText)
                                     logger.info("Tweet submitted...")
+
+                                if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('PRE_THREAD_SUBMITTED'):
+                                    logger.info("Sending Prowl notification...")
+                                    event = myteam.get('name') + ' Pregame Thread Posted'
+                                    description = myteam.get('name') + ' pregame thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+game.get('pretitle')+'\nURL: '+game.get('presub').shortlink
+                                    prowlResult = prowl.send_notification(event, description, url=game.get('presub').shortlink)
+                                    logger.info("Notifications sent...")
 
                                 logger.info("Sleeping for 5 seconds...")
                                 time.sleep(5)
@@ -1013,6 +1079,13 @@ class Bot:
                                         twt.PostUpdate(tweetText)
                                         logger.info("Tweet submitted...")
 
+                                    if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('GAME_THREAD_SUBMITTED'):
+                                        logger.info("Sending Prowl notification...")
+                                        event = myteam.get('name') + ' Game Thread Posted'
+                                        description = myteam.get('name') + ' game thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+game.get('gametitle')+'\nURL: '+game.get('gamesub').shortlink
+                                        prowlResult = prowl.send_notification(event, description, url=game.get('gamesub').shortlink)
+                                        logger.info("Notifications sent...")
+
                                     game.update({'skipflag':True})
                                     sleeptime = 5 + self.SETTINGS.get('GAME_THREAD').get('EXTRA_SLEEP')
                                     logger.info("Sleeping for %s seconds...",sleeptime)
@@ -1142,6 +1215,13 @@ class Bot:
                                                 twt.PostUpdate(tweetText)
                                                 logger.info("Tweet submitted...")
 
+                                            if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('POST_THREAD_SUBMITTED'):
+                                                logger.info("Sending Prowl notification...")
+                                                event = myteam.get('name') + ' Postgame Thread Posted'
+                                                description = myteam.get('name') + ' postgame thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+game.get('posttitle')+'\nURL: '+game.get('postsub').shortlink
+                                                prowlResult = prowl.send_notification(event, description, url=game.get('postsub').shortlink)
+                                                logger.info("Notifications sent...")
+
                                             logger.info("Sleeping for 5 seconds...")
                                             time.sleep(5)
                                     except Exception, err:
@@ -1186,6 +1266,13 @@ class Bot:
                             rate = edits/checks*100
                         else: rate = '-'
                         logger.info("Game thread edit stats for Game %s: %s checks, %s edits, %s%% edit rate.", a, checks, edits, rate)
+                        if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('END_OF_DAY_EDIT_STATS'):
+                            logger.info("Sending Prowl notification with Game %s edit stats...",a)
+                            event = myteam.get('name') + ' Game Thread Edit Stats'
+                            if len(self.games)>1: event += ' - Game ' + a
+                            description = myteam.get('name') + ' game thread edit stats for game at '+b.get('gameInfo').get('date_object').strftime('%Y-%m-%d %I:%M %p')+':\nTotal checks: ' + checks + '\nTotal Edits: ' + edits + '\n Edit rate: ' + rate
+                            prowlResult = prowl.send_notification(event, description, url=b.get('gamesub').shortlink)
+                            logger.info("Notifications sent...")
                     logger.info("All games final for today, going into end of day loop...")
                     break
                 elif pendinggames > 0 and activegames == 0:

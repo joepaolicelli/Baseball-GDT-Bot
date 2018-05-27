@@ -48,6 +48,17 @@ The following settings can be configured in `/src/settings.json`:
 	* `CONSOLE` - do you want to log to the console? (true/false)
 	* `CONSOLE_LOG_LEVEL` - how much detail do you want logged to the console? (`CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG` - default/recommended: `INFO`)
 
+* `NOTIFICATIONS` - settings related to notifications
+	* `PROWL` - settings related to Prowl notifications
+		* `ENABLED` - do you want to enable Prowl notifications? (true/false)
+		* `API_KEY` - your Prowl API key, generate at https://www.prowlapp.com/api_settings.php
+		* `NOTIFY_WHEN` - enable/disable individual notifications
+			* `OFF_THREAD_SUBMITTED` - send a notification when off day thread is posted (true/false)
+			* `PRE_THREAD_SUBMITTED` - send a notification when pregame thread is posted (true/false)
+			* `GAME_THREAD_SUBMITTED` - send a notification when game thread is posted (true/false)
+			* `POST_THREAD_SUBMITTED` - send a notification when postgame thread is posted (true/false)
+			* `END_OF_DAY_EDIT_STATS` - send notifications at the end of each day with stats about edit rate for each game (true/false)
+
 * `TWITTER` - holds OAuth fields for Twitter API connection
 	* `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_SECRET` - all required to use Twitter features - follow the instructions at https://python-twitter.readthedocs.io/en/latest/getting_started.html
 
@@ -161,8 +172,9 @@ Modules being used:
 ### Change Log
 
 #### v5.1.2
-* Added `logger.py` module, which contains the `Logger` class that adds console and file handlers to the root logger. Enable and set log level for console and file in `settings.json` with the new `LOGGING` section. `LOG_LEVEL` setting is deprecated. Default is file enabled/DEBUG and console enabled/INFO. Log files will be stored in `/logs` and named `TEAM_CODE-bot.log` (e.g. `phi-bot.log`), rotated daily with a week's logs retained.
+* Added `logger.py` module, which contains the `Logger` class that adds console and file handlers to the root logger. Enable and set log level for console and file in `settings.json` with the new `LOGGING` section (copy from `sample_settings.json`). `LOG_LEVEL` setting is deprecated. Default is file enabled/DEBUG and console enabled/INFO. Log files will be stored in `/logs` and named `TEAM_CODE-bot.log` (e.g. `phi-bot.log`), rotated daily with a week's logs retained.
 * Added `self.editStats` dict to hold data about checks and edits for each game thread. At the end of each day, an INFO entry will be logged with the totals and rate (edits/checks)
+* Added Prowl notification support. Enable Prowl notifications overall, as well as individual notifications in the new `NOTIFICATIONS` : `PROWL` section in `settings.json`. See `README.md` for details and copy from `sample_settings.json`
 
 #### v5.1.1
 * Fixed bug in `next_game()` that resulted in doubleheader game 1 being listed as the next game after doubleheader game 2
