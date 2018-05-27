@@ -42,7 +42,11 @@ The following settings can be configured in `/src/settings.json`:
 
 * `FLAIR_MODE` - do you want to set flair on offday/pre/game/post threads using a mod command (bot user must have mod rights), as the thread submitter (sub settings must allow), or none? ("none", "submitter", "mod") **NOTE**: in order to use this, you may have to re-do the OAuth setup process described above to obtain a new refresh token that includes flair permissions.
 
-* `LOG_LEVEL` - controls the amount of logging to the console (0 for none--not recommended, 1 for error only, 2 for normal/info (default), 3 for debug, 4 for verbose debug)
+* `LOGGING` - controls the amount of logging to the console and file (rotated daily with the previous week's log files retained)
+	* `FILE` - do you want to log to a file (`TEAM_CODE-bot.log` in the `/logs` directory, e.g. `/logs/phi-bot.log`)? (true/false)
+	* `FILE_LOG_LEVEL` - how much detail do you want logged to file? (`CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG` - default/recommended: `DEBUG`)
+	* `CONSOLE` - do you want to log to the console? (true/false)
+	* `CONSOLE_LOG_LEVEL` - how much detail do you want logged to the console? (`CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG` - default/recommended: `INFO`)
 
 * `TWITTER` - holds OAuth fields for Twitter API connection
 	* `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_SECRET` - all required to use Twitter features - follow the instructions at https://python-twitter.readthedocs.io/en/latest/getting_started.html
@@ -157,7 +161,7 @@ Modules being used:
 ### Change Log
 
 #### v5.1.2
-* 
+* Added `logger.py` module, which contains the `Logger` class that adds console and file handlers to the root logger. Enable and set log level for console and file in `settings.json` with the new `LOGGING` section. `LOG_LEVEL` setting is deprecated. Default is file enabled/DEBUG and console enabled/INFO. Log files will be stored in `/logs` and named `TEAM_CODE-bot.log` (e.g. `phi-bot.log`), rotated daily with a week's logs retained.
 
 #### v5.1.1
 * Fixed bug in `next_game()` that resulted in doubleheader game 1 being listed as the next game after doubleheader game 2

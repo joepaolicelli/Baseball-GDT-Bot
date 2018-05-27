@@ -8,7 +8,12 @@
     "TEAM_CODE": "XXX",
     "STICKY": true,
     "FLAIR_MODE": "none",
-    "LOG_LEVEL": 2,
+    "LOGGING": {
+        "FILE": true,
+        "FILE_LOG_LEVEL": "DEBUG",
+        "CONSOLE": true,
+        "CONSOLE_LOG_LEVEL": "INFO"
+    },
     "OFF_THREAD": {
         "ENABLED": true,
         "TITLE": "OFF DAY THREAD: {date:%A, %B %d}",
