@@ -1263,16 +1263,21 @@ class Bot:
                         checks = len(self.editStats[a]['checked'])
                         edits = len(self.editStats[a]['edited'])
                         if checks != 0:
-                            rate = edits/checks*100
+                            rate = edits/(checks*1.0)*100
                         else: rate = '-'
                         logger.info("Game thread edit stats for Game %s: %s checks, %s edits, %s%% edit rate.", a, checks, edits, rate)
                         if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('END_OF_DAY_EDIT_STATS'):
                             logger.info("Sending Prowl notification with Game %s edit stats...",a)
                             event = myteam.get('name') + ' Game Thread Edit Stats'
                             if len(self.games)>1: event += ' - Game ' + a
-                            description = myteam.get('name') + ' game thread edit stats for game at '+b.get('gameInfo').get('date_object').strftime('%Y-%m-%d %I:%M %p')+':\nTotal checks: ' + checks + '\nTotal Edits: ' + edits + '\n Edit rate: ' + rate
+                            if b.get('homeaway') == 'home':
+                                vsat = 'vs. ' + b.get('gameInfo').get('away').get('team_name')
+                            else:
+                                vsat = '@ ' + b.get('gameInfo').get('home').get('team_name')
+                            
+                            description = myteam.get('name') + ' game thread edit stats for '+b.get('gameInfo').get('date_object').strftime('%Y-%m-%d %I:%M %p')+' game '+vsat+':\nTotal checks: ' + str(checks) + '\nTotal Edits: ' + str(edits) + '\nEdit rate: ' + str(rate)[:5] + "%"
                             prowlResult = prowl.send_notification(event, description, url=b.get('gamesub').shortlink)
-                            logger.info("Notifications sent...")
+                            logger.info("Notification sent...")
                     logger.info("All games final for today, going into end of day loop...")
                     break
                 elif pendinggames > 0 and activegames == 0:

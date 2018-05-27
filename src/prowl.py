@@ -42,7 +42,6 @@ class Prowl:
 
     def parse_response(self, response):
         import xml.etree.ElementTree as ET
-        import simplejson as json
 
         errorMessages = {   
                             '-1' : 'Unknown error',
