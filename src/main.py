@@ -696,7 +696,7 @@ class Bot:
                     logger.info("No games in the next 30 days. It's the off season...")
                     offseason = True
                 elif next_game.get('days_away') > 14:
-                    logger.info("Next game is",next_game.get('days_away'),"days away. It's the off season...")
+                    logger.info("Next game is %s days away. It's the off season...", next_game.get('days_away'))
                     offseason = True
                 elif next_game.get('days_away') <= 14:
                     last_game = edit.last_game(14,myteam.get('team_id'))
@@ -816,7 +816,7 @@ class Bot:
 
                         logger.info("Finished posting offday thread, going into end of day loop...")
                 except Exception, err:
-                    logger.info("Error posting off day thread: %s",err)
+                    logger.info("Error posting off day thread, going into end of day loop: %s",err)
             elif not self.SETTINGS.get('OFF_THREAD').get('ENABLED') and len(self.games) == 0:
                 logger.info("Off day detected, but off day thread disabled. Going into end of day loop...")
             elif offseason and self.SETTINGS.get('OFF_THREAD').get('SUPPRESS_OFFSEASON') and len(self.games) == 0:
@@ -982,11 +982,11 @@ class Bot:
             while len(self.games) > 0:
                 for k,game in self.games.items():
                     if len(self.games)>1: logger.info("Game %s check",k)
-                    self.editStats[k]['checked'].append(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
                     if game.get('othergame')>0 and self.games[game.get('othergame')].get('doubleheader') and self.games[game.get('othergame')].get('final') and not game.get('gamesub'):
                         logger.info("Updating title for doubleheader Game %s since Game %s is final...", k, game.get('othergame'))
                         game.update({'gametitle': edit.generate_title(k,'game')})
                     game.update({'status' : edit.get_status(k)})
+                    self.editStats[k]['checked'].append({'stamp':datetime.today().strftime('%Y-%m-%d %H:%M:%S'), 'abstractGameState':game.get('status').get('abstractGameState'), 'detailedState':game.get('status').get('detailedState')})
                     if timechecker.gamecheck(k,activegames+pendinggames) == True:
                         if not game.get('final'):
                             check = edit.convert_tz(datetime.utcnow(),'bot')
@@ -1137,7 +1137,7 @@ class Bot:
                                                 game.get('gamesub').edit(threadstr)
                                                 sleeptime = 5 + self.SETTINGS.get('GAME_THREAD').get('EXTRA_SLEEP')
                                                 logger.info("Game %s edits submitted. Sleeping for %s seconds...",k,sleeptime)
-                                                self.editStats[k]['edited'].append(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+                                                self.editStats[k]['edited'].append({'stamp':datetime.today().strftime('%Y-%m-%d %H:%M:%S'), 'abstractGameState':game.get('status').get('abstractGameState'), 'detailedState':game.get('status').get('detailedState')})
                                                 time.sleep(sleeptime)
                                                 break
                                             except Exception, err:
@@ -1204,7 +1204,7 @@ class Bot:
 
                                             if self.SETTINGS.get('FLAIR_MODE') == 'submitter':
                                                 if self.SETTINGS.get('POST_THREAD').get('FLAIR') == "":
-                                                    logger.error("WARNING: FLAIR_MODE = submitter, but POST_THREAD : FLAIR is blank...")
+                                                    logger.error("FLAIR_MODE = submitter, but POST_THREAD : FLAIR is blank...")
                                                 else:
                                                     logger.info("Adding flair to submission as submitter...")
                                                     choices = game.get('postsub').flair.choices()
