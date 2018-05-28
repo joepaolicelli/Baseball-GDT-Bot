@@ -1289,7 +1289,7 @@ class Bot:
                     elif sgame.get('final'):
                         completedgames += 1
 
-                logger.debug("threads: %s",threads)
+                #logger.debug("threads: %s",threads) #uncomment if needed for debugging
                 if len(offday):
                     logger.debug("offday: %s",offday)
                 logger.debug("self.games: %s",self.games)
