@@ -807,9 +807,12 @@ class Bot:
                         if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('OFF_THREAD_SUBMITTED'):
                             logger.info("Sending Prowl notification...")
                             event = myteam.get('name') + ' Off Day Thread Posted'
-                            description = myteam.get('name') + ' off day thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+offday.get('offtitle')+'\nURL: '+offday.get('offsub').shortlink
+                            description = myteam.get('name') + ' off day thread was posted to r/'+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M %p')+'.\nThread title: '+offday.get('offtitle')+'\nURL: '+offday.get('offsub').shortlink
                             prowlResult = prowl.send_notification(event, description, url=offday.get('offsub').shortlink)
-                            logger.info("Notifications sent...")
+                            if prowlResult.get('status') == 'success':
+                                logger.info("Successfully sent notification to Prowl...")
+                            else:
+                                logger.error("Failed to send notification to Prowl... Event: %s, Description: %s, Status code: %s %s, Error message: %s", event, description, prowlResult.get('code'), prowlResult.get('message'), prowlResult.get('errMsg'))
 
                         logger.info("Finished posting offday thread, going into end of day loop...")
                 except Exception, err:
@@ -938,10 +941,22 @@ class Bot:
 
                                 if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('PRE_THREAD_SUBMITTED'):
                                     logger.info("Sending Prowl notification...")
+                                    if game.get('homeaway') == 'home':
+                                        vsat = 'vs. ' + game.get('gameInfo').get('away').get('team_name')
+                                    else:
+                                        vsat = '@ ' + game.get('gameInfo').get('home').get('team_name')
                                     event = myteam.get('name') + ' Pregame Thread Posted'
-                                    description = myteam.get('name') + ' pregame thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+game.get('pretitle')+'\nURL: '+game.get('presub').shortlink
+                                    if game.get('doubleheader') and not self.SETTINGS.get('PRE_THREAD').get('CONSOLIDATE_DH'): event += ' - DH Game ' + game.get('gameNumber')
+                                    description = 'Pregame thread posted to r/'+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M %p')+':\n' +\
+                                                    myteam.get('name')+' '+vsat+'\n' +\
+                                                    'First Pitch: '+game.get('gameInfo').get('date_object').strftime('%I:%M %p')+'\n' +\
+                                                    'Thread title: '+game.get('pretitle')+'\n' +\
+                                                    'URL: '+game.get('presub').shortlink
                                     prowlResult = prowl.send_notification(event, description, url=game.get('presub').shortlink)
-                                    logger.info("Notifications sent...")
+                                    if prowlResult.get('status') == 'success':
+                                        logger.info("Successfully sent notification to Prowl...")
+                                    else:
+                                        logger.error("Failed to send notification to Prowl... Event: %s, Description: %s, Status code: %s %s, Error message: %s", event, description, prowlResult.get('code'), prowlResult.get('message'), prowlResult.get('errMsg'))
 
                                 logger.info("Sleeping for 5 seconds...")
                                 time.sleep(5)
@@ -1081,10 +1096,22 @@ class Bot:
 
                                     if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('GAME_THREAD_SUBMITTED'):
                                         logger.info("Sending Prowl notification...")
+                                        if game.get('homeaway') == 'home':
+                                            vsat = 'vs. ' + game.get('gameInfo').get('away').get('team_name')
+                                        else:
+                                            vsat = '@ ' + game.get('gameInfo').get('home').get('team_name')
+                                        if game.get('doubleheader'): event += ' - DH Game ' + game.get('gameNumber')
                                         event = myteam.get('name') + ' Game Thread Posted'
-                                        description = myteam.get('name') + ' game thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+game.get('gametitle')+'\nURL: '+game.get('gamesub').shortlink
+                                        description = 'Game thread posted to r/'+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M %p')+':\n' +\
+                                                        myteam.get('name')+' '+vsat+'\n' +\
+                                                        'First Pitch: '+game.get('gameInfo').get('date_object').strftime('%I:%M %p')+'\n' +\
+                                                        'Thread title: '+game.get('gametitle')+'\n' +\
+                                                        'URL: '+game.get('gamesub').shortlink
                                         prowlResult = prowl.send_notification(event, description, url=game.get('gamesub').shortlink)
-                                        logger.info("Notifications sent...")
+                                        if prowlResult.get('status') == 'success':
+                                            logger.info("Successfully sent notification to Prowl...")
+                                        else:
+                                            logger.error("Failed to send notification to Prowl... Event: %s, Description: %s, Status code: %s %s, Error message: %s", event, description, prowlResult.get('code'), prowlResult.get('message'), prowlResult.get('errMsg'))
 
                                     game.update({'skipflag':True})
                                     sleeptime = 5 + self.SETTINGS.get('GAME_THREAD').get('EXTRA_SLEEP')
@@ -1217,10 +1244,23 @@ class Bot:
 
                                             if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('POST_THREAD_SUBMITTED'):
                                                 logger.info("Sending Prowl notification...")
+                                                if game.get('homeaway') == 'home':
+                                                    vsat = 'vs. ' + game.get('gameInfo').get('away').get('team_name')
+                                                    opp = 'away'
+                                                else:
+                                                    vsat = '@ ' + game.get('gameInfo').get('home').get('team_name')
+                                                    opp = 'home'
+                                                if game.get('doubleheader'): event += ' - DH Game ' + game.get('gameNumber')
                                                 event = myteam.get('name') + ' Postgame Thread Posted'
-                                                description = myteam.get('name') + ' postgame thread was posted in '+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M:%S %p')+'.\nThread title: '+game.get('posttitle')+'\nURL: '+game.get('postsub').shortlink
+                                                description = 'Postgame thread posted to r/'+self.SETTINGS.get('SUBREDDIT')+' at '+datetime.today().strftime('%I:%M %p')+':\n' +\
+                                                                myteam.get('name')+'('+str(game.get('gameInfo').get(game.get('homeaway'),{}).get('runs',0))+') '+vsat+' ('+str(game.get('gameInfo').get(opp,{}).get('runs',0))+')\n' +\
+                                                                'Thread title: '+game.get('gametitle')+'\n' +\
+                                                                'URL: '+game.get('gamesub').shortlink
                                                 prowlResult = prowl.send_notification(event, description, url=game.get('postsub').shortlink)
-                                                logger.info("Notifications sent...")
+                                                if prowlResult.get('status') == 'success':
+                                                    logger.info("Successfully sent notification to Prowl...")
+                                                else:
+                                                    logger.error("Failed to send notification to Prowl... Event: %s, Description: %s, Status code: %s %s, Error message: %s", event, description, prowlResult.get('code'), prowlResult.get('message'), prowlResult.get('errMsg'))
 
                                             logger.info("Sleeping for 5 seconds...")
                                             time.sleep(5)
@@ -1268,16 +1308,18 @@ class Bot:
                         logger.info("Game thread edit stats for Game %s: %s checks, %s edits, %s%% edit rate.", a, checks, edits, rate)
                         if self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('ENABLED') and self.SETTINGS.get('NOTIFICATIONS').get('PROWL').get('NOTIFY_WHEN').get('END_OF_DAY_EDIT_STATS'):
                             logger.info("Sending Prowl notification with Game %s edit stats...",a)
-                            event = myteam.get('name') + ' Game Thread Edit Stats'
-                            if len(self.games)>1: event += ' - Game ' + a
                             if b.get('homeaway') == 'home':
                                 vsat = 'vs. ' + b.get('gameInfo').get('away').get('team_name')
                             else:
                                 vsat = '@ ' + b.get('gameInfo').get('home').get('team_name')
-                            
-                            description = myteam.get('name') + ' game thread edit stats for '+b.get('gameInfo').get('date_object').strftime('%Y-%m-%d %I:%M %p')+' game '+vsat+':\nTotal checks: ' + str(checks) + '\nTotal Edits: ' + str(edits) + '\nEdit rate: ' + str(rate)[:5] + "%"
+                            event = myteam.get('name') + ' ' + vsat + ' Game Thread Edit Stats'
+                            if b.get('doubleheader'): event += ' - DH Game ' + b.get('gameNumber')
+                            description = 'Game thread edit stats for '+b.get('gameInfo').get('date_object').strftime('%I:%M %p')+' '+myteam.get('name')+' game '+vsat+':\nTotal checks: ' + str(checks) + '\nTotal Edits: ' + str(edits) + '\nEdit rate: ' + str(rate)[:5] + "%"
                             prowlResult = prowl.send_notification(event, description, url=b.get('gamesub').shortlink)
-                            logger.info("Notification sent...")
+                            if prowlResult.get('status') == 'success':
+                                logger.info("Successfully sent notification to Prowl...")
+                            else:
+                                logger.error("Failed to send notification to Prowl... Event: %s, Description: %s, Status code: %s %s, Error message: %s", event, description, prowlResult.get('code'), prowlResult.get('message'), prowlResult.get('errMsg'))
                     logger.info("All games final for today, going into end of day loop...")
                     break
                 elif pendinggames > 0 and activegames == 0:

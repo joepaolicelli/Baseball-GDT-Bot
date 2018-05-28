@@ -34,16 +34,17 @@ class Prowl:
         except urllib2.HTTPError as e:
             response = {'status':'error', 'code':str(e.code), 'message':e.reason}
         except urllib2.URLError as e:
-            response = {'status':'error', 'code':str(e.code), 'message':e.reason}
+            response = {'status':'error', 'code':'0', 'message':'Connection error', 'errMsg':e.reason}
         except Exception as e:
             response = {'status':'error', 'code':'-1', 'message':'Unknown error', 'errMsg':e}
-            
+
         return self.parse_response(response)
 
     def parse_response(self, response):
         import xml.etree.ElementTree as ET
 
         errorMessages = {   
+                            '0'  : 'Connection error',
                             '-1' : 'Unknown error',
                             '200': 'Success',
                             '400': 'Bad request, the parameters you provided did not validate.',
